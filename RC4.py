@@ -1,29 +1,23 @@
 import numpy as np
 
-def recebeModo():
-    while True:
-        option = input("1 - Criptografar ; 2 - Descriptografar ")
-        option = option.lower()
-        if option == '1' or option == 1 or option == '2' or option == 2:
-            return option
-        print("Escolha entre 1 ou 2")
-
 
 def KSA(key):
     tam_key = len(key)
     S = list(range(256))
     j = 0
-    for i in range (256):
-        j = (j + S[i]+key[i%tam_key]) % 256
+    for i in range(256):
+        j = (j + S[i] + key[
+            i % tam_key]) % 256
         S[i], S[j] = S[j], S[i]
     return S
+
 
 def PRGA(S, n):
     i = 0
     j = 0
-    key=[]
+    key = []
     while n > 0:
-        n-= 1
+        n -= 1  #
         i = (i + 1) % 256
         j = (j + S[i]) % 256
         S[i], S[j] = S[j], S[i]
@@ -31,30 +25,67 @@ def PRGA(S, n):
         key.append(K)
     return key
 
-def preparandoArray(s):
+
+def criandoArray(s):
     return [ord(c) for c in s]
 
-def rc4(modo):
-    if modo == '1' or modo == 1:
-        key = input("Key:")
-        message = input("Plaintext:")
-        key = preparandoArray(key)
 
-        S = KSA(key)
+def deArrayParaString(array):
+    text = ""
+    for c in range(len(array)):
+        text += array[c]
+    return text
 
-        keystream = np.array(PRGA(S, len(message)))
 
-        print("keystream: ", keystream)
+def cifrar(message, keystream):
+    message = np.array([ord(c) for c in message])
+    cipher = keystream ^ message
+    print("\nResult: ", cipher)
+    return cipher
 
-        message = np.array([ord(c) for c in message])
 
-        cipher = keystream ^ message
+def iniciarKeystream(key, message):
+    S = KSA(key)
+    keystream = np.array(PRGA(S, len(message)))
+    print("\nKEYSTREAM: ", keystream)
+    return keystream
 
-        print(cipher.astype(np.uint8).data.hex())
+
+def decifrar(cipher, keystream):
+    decrypterUni = keystream ^ cipher
+    decrypter = [chr(c) for c in decrypterUni]
+    return deArrayParaString(decrypter)
+
+
+def rc4(key, plaintext):
+    keyArray = criandoArray(key)
+    keystream = iniciarKeystream(keyArray, plaintext)
+    cipher = cifrar(plaintext, keystream)
+    cipherHex = (cipher.astype(np.uint8).data.hex())
+    print("\nHEX: ", cipherHex)
+    decifrar = ""
+    while decifrar != key:
+        option = input("\nDeseja descriptografar? [s/n]")
+        if option == 's':
+            decifrar = input("\nKEY:")
+            print("\nResultado:", decifrar(cipher, keystream))
+
+        elif option == 'n':
+            print('------------FIM------------')
+            exit()
+        else: print("Inválido!")
+
+
+
 
 def main():
-
-    modo = recebeModo()
-    rc4(modo)
+      while True:
+        print('------------RC4------------')
+        key = input("Chave:")
+        plaintext = input("Texto:")
+        rc4(key, plaintext)
 
 main()
+
+
+
